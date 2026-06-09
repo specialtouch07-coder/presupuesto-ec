@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presupuesto Educación Continua — UNIREMHOS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --gold:#E6A817;--gold-dark:#633806;--gold-light:#FAEEDA;
+    --black:#1A1A1A;--white:#FFFFFF;--gray:#F5F5F3;--border:#E5E5E3;
+    --text:#1A1A1A;--muted:#6B6B68;--teal:#1D9E75;--teal-light:#E1F5EE;
+    --red:#D85A30;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#F8F8F6;color:var(--text);font-size:14px}
+  .nav{background:var(--black);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between}
+  .nav-brand{display:flex;align-items:center;gap:10px}
+  .nav-logo{width:28px;height:28px;background:var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--gold-dark)}
+  .nav-title{color:#fff;font-size:14px;font-weight:500}
+  .nav-sub{color:#888;font-size:12px}
+  .export-btn{background:var(--gold);border:none;color:var(--gold-dark);font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px}
+  .container{max-width:960px;margin:0 auto;padding:24px 16px}
+  .card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+  .card h2{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+  .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:11px;color:var(--muted);font-weight:500}
+  .field input{border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;background:var(--gray);color:var(--text);outline:none;width:100%}
+  .field input:focus{border-color:var(--gold);background:var(--white)}
+  .auto-val{border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;background:#EFEFED;color:var(--muted)}
+  .section-card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px}
+  .sec-hdr{background:var(--black);padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+  .sec-hdr span{color:#fff;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  .sec-total{color:var(--gold);font-size:13px;font-weight:600}
+  /* MODULE TABLE */
+  .mod-table{width:100%;border-collapse:collapse}
+  .mod-table th{background:var(--gray);font-size:11px;color:var(--muted);font-weight:600;padding:8px 12px;text-align:left;border-bottom:0.5px solid var(--border)}
+  .mod-table th.right{text-align:right}
+  .mod-table td{padding:8px 12px;border-bottom:0.5px solid var(--border);font-size:13px;vertical-align:middle}
+  .mod-table tr:last-child td{border-bottom:none}
+  .mod-table td.right{text-align:right}
+  .mod-input{border:0.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;background:var(--gray);color:var(--text);outline:none;text-align:right;width:80px}
+  .mod-input:focus{border-color:var(--gold);background:var(--white)}
+  .mod-auto{font-size:12px;color:var(--muted);text-align:right}
+  .mod-cost{font-size:13px;font-weight:600;color:var(--red);text-align:right}
+  .mod-total-row td{background:var(--gray);font-weight:600;font-size:13px}
+  /* SIMPLE ROWS */
+  .row{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:0.5px solid var(--border)}
+  .row:last-child{border-bottom:none}
+  .row-label{flex:1;font-size:13px;color:var(--text)}
+  .row-label.sub{color:var(--muted);font-size:12px;padding-left:12px}
+  .row-label.bold{font-weight:600}
+  .row-input{width:120px;border:0.5px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;background:var(--gray);color:var(--text);outline:none;text-align:right}
+  .row-input:focus{border-color:var(--gold);background:var(--white)}
+  .row-value{width:130px;text-align:right;font-size:13px;font-weight:500}
+  .neg{color:var(--red)}
+  .pos{color:var(--teal)}
+  .badge{font-size:10px;padding:2px 7px;border-radius:8px;margin-left:6px;background:var(--gold-light);color:var(--gold-dark)}
+  .divider{background:var(--gray);padding:6px 16px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
+  /* SUMMARY */
+  .summary{background:var(--black);border-radius:12px;padding:20px;margin-top:8px}
+  .summary h3{color:#fff;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
+  .sum-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid rgba(255,255,255,.1)}
+  .sum-row:last-child{border-bottom:none;padding-top:14px;margin-top:4px}
+  .sum-label{color:#bbb;font-size:13px}
+  .sum-value{font-size:13px;font-weight:600;color:#fff}
+  .sum-row.hl .sum-label{color:var(--gold);font-size:14px;font-weight:600}
+  .sum-row.hl .sum-value{color:var(--gold);font-size:20px}
+  .sum-row.sr .sum-label{color:#888;font-size:12px;padding-left:12px}
+  .sum-row.sr .sum-value{font-size:12px;color:#ff7a5a}
+  .info-banner{background:var(--gold-light);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--gold-dark)}
+  .margin-card{border-radius:12px;padding:20px;margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .margin-card.good{background:var(--teal-light);border:1px solid var(--teal)}
+  .margin-card.mid{background:#FFF8E1;border:1px solid #F0B429}
+  .margin-card.bad{background:#FDECEA;border:1px solid var(--red)}
+  .margin-left{flex:1}
+  .margin-pct{font-size:48px;font-weight:700;line-height:1}
+  .margin-card.good .margin-pct{color:var(--teal)}
+  .margin-card.mid .margin-pct{color:#B07D00}
+  .margin-card.bad .margin-pct{color:var(--red)}
+  .margin-label{font-size:13px;font-weight:600;margin-top:4px}
+  .margin-card.good .margin-label{color:#085041}
+  .margin-card.mid .margin-label{color:#7A5500}
+  .margin-card.bad .margin-label{color:var(--red)}
+  .margin-desc{font-size:12px;margin-top:6px;line-height:1.5}
+  .margin-card.good .margin-desc{color:#1D7A5A}
+  .margin-card.mid .margin-desc{color:#8A6400}
+  .margin-card.bad .margin-desc{color:#A03020}
+  .margin-bar-wrap{flex:1;min-width:180px}
+  .margin-bar-bg{background:rgba(0,0,0,.1);border-radius:20px;height:12px;overflow:hidden;margin-bottom:8px}
+  .margin-bar-fill{height:100%;border-radius:20px;transition:width .5s ease}
+  .margin-card.good .margin-bar-fill{background:var(--teal)}
+  .margin-card.mid .margin-bar-fill{background:#F0B429}
+  .margin-card.bad .margin-bar-fill{background:var(--red)}
+  .margin-scale{display:flex;justify-content:space-between;font-size:10px;color:inherit;opacity:.6}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-brand">
+    <div class="nav-logo">U</div>
+    <div>
+      <div class="nav-title">Presupuesto Educación Continua</div>
+      <div class="nav-sub">UNIREMHOS — Documento interno</div>
+    </div>
+  </div>
+  <button class="export-btn" onclick="exportExcel()">⬇ Exportar Excel</button>
+</nav>
+
+<div class="container">
+  <div class="info-banner">💡 Completa las horas teóricas y prácticas de cada módulo. El costo se calcula automáticamente a RD$500/hora.</div>
+
+  <!-- DATOS DEL PROGRAMA -->
+  <div class="card">
+    <h2>Datos del programa</h2>
+    <div class="field-grid">
+      <div class="field" style="grid-column:span 2">
+        <label>Nombre del programa</label>
+        <input type="text" id="programa" placeholder="Ej: Taller de Canalización" oninput="calcular()">
+      </div>
+      <div class="field">
+        <label>Costo por participante (RD$)</label>
+        <input type="number" id="costo_part" value="0" min="0" oninput="calcular()">
+      </div>
+      <div class="field">
+        <label>Cantidad de participantes</label>
+        <input type="number" id="cant_part" value="0" min="0" oninput="calcular()">
+      </div>
+      <div class="field">
+        <label>Cantidad de semanas</label>
+        <input type="number" id="cant_semanas" value="0" min="0" oninput="calcular()">
+      </div>
+      <div class="field">
+        <label>Precio hora docente (RD$)</label>
+        <input type="number" id="precio_hora" value="500" min="0" oninput="calcular()">
+      </div>
+      <div class="field">
+        <label>Total horas (automático)</label>
+        <div class="auto-val" id="total_horas_auto">0 horas</div>
+      </div>
+      <div class="field">
+        <label>Total ingresos (automático)</label>
+        <div class="auto-val" id="total_ingresos_auto">RD$ 0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INGRESOS -->
+  <div class="section-card">
+    <div class="sec-hdr">
+      <span>Ingresos</span>
+      <span class="sec-total" id="hdr-ingresos">RD$ 0</span>
+    </div>
+    <div class="row">
+      <div class="row-label bold">Total ingresos <span class="badge" id="badge-part"></span></div>
+      <div class="row-value pos" id="val-ingresos">RD$ 0</div>
+    </div>
+    <div class="row">
+      <div class="row-label">Coordinación / quorum <span class="badge" id="badge-coord-pct"></span></div>
+      <div class="row-value neg" id="val-coord">– RD$ 0</div>
+    </div>
+  </div>
+
+  <!-- MÓDULOS -->
+  <div class="section-card">
+    <div class="sec-hdr">
+      <span>Módulos — Honorarios docentes</span>
+      <span class="sec-total" id="hdr-modulos">RD$ 0</span>
+    </div>
+    <table class="mod-table">
+      <thead>
+        <tr>
+          <th>Módulo</th>
+          <th class="right">Hrs teóricas</th>
+          <th class="right">Hrs prácticas</th>
+          <th class="right">Total hrs</th>
+          <th class="right">Costo (RD$500/hr)</th>
+        </tr>
+      </thead>
+      <tbody id="modulos-body">
+        <!-- generado por JS -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MATERIALES / LOGÍSTICA -->
+  <div class="section-card">
+    <div class="sec-hdr">
+      <span>Materiales / Logística</span>
+      <span class="sec-total" id="hdr-materiales">RD$ 0</span>
+    </div>
+    <div class="row"><div class="row-label sub">Libretas</div><input class="row-input mat" type="number" value="0" min="0" oninput="calcular()"></div>
+    <div class="row"><div class="row-label sub">Lapiceros</div><input class="row-input mat" type="number" value="0" min="0" oninput="calcular()"></div>
+    <div class="row"><div class="row-label sub">Certificados</div><input class="row-input mat" type="number" value="0" min="0" oninput="calcular()"></div>
+    <div class="row"><div class="row-label sub">Impresión y encuadernado</div><input class="row-input mat" type="number" value="0" min="0" oninput="calcular()"></div>
+    <div class="row"><div class="row-label sub">Costo institucional (aulas)</div><input class="row-input mat" type="number" value="1000" min="0" oninput="calcular()"></div>
+  </div>
+
+  <!-- GASTOS INDIRECTOS -->
+  <div class="section-card">
+    <div class="sec-hdr">
+      <span>Gastos Indirectos Institucionales</span>
+      <span class="sec-total" id="hdr-indirectos">RD$ 0</span>
+    </div>
+    <div class="row">
+      <div class="row-label sub">Luz, empleomanía administrativa y otros</div>
+      <input class="row-input" id="gastos_indirectos" type="number" value="0" min="0" oninput="calcular()">
+    </div>
+  </div>
+
+  <!-- PROMOCIÓN -->
+  <div class="section-card">
+    <div class="sec-hdr">
+      <span>Promoción / Mercadeo / Publicidad</span>
+      <span class="sec-total" id="hdr-promo">RD$ 0</span>
+    </div>
+    <div class="row"><div class="row-label sub">Descuento % estudiantes</div><input class="row-input promo" type="number" value="0" min="0" oninput="calcular()"></div>
+    <div class="row"><div class="row-label sub">Prensa / Medios radiales</div><input class="row-input promo" type="number" value="0" min="0" oninput="calcular()"></div>
+    <div class="row"><div class="row-label sub">Redes sociales</div><input class="row-input promo" type="number" value="0" min="0" oninput="calcular()"></div>
+    <div class="row"><div class="row-label sub">Refrigerio / Café</div><input class="row-input promo" type="number" value="0" min="0" oninput="calcular()"></div>
+  </div>
+
+  <!-- IMPREVISTOS -->
+  <div class="section-card">
+    <div class="sec-hdr">
+      <span>Imprevistos</span>
+      <span class="sec-total" id="hdr-imprevistos">RD$ 0</span>
+    </div>
+    <div class="row">
+      <div class="row-label sub">Monto imprevistos</div>
+      <input class="row-input" id="imprevistos" type="number" value="0" min="0" oninput="calcular()">
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="summary">
+    <h3>Resumen del presupuesto</h3>
+    <div class="sum-row">
+      <span class="sum-label">Total ingresos</span>
+      <span class="sum-value" id="s-ingresos">RD$ 0</span>
+    </div>
+    <div class="sum-row sr">
+      <span class="sum-label">↳ Coordinación / quorum</span>
+      <span class="sum-value" id="s-coord">– RD$ 0</span>
+    </div>
+    <div id="s-modulos-detail"></div>
+    <div class="sum-row sr">
+      <span class="sum-label">↳ Total honorarios docentes</span>
+      <span class="sum-value" id="s-modulos-total">– RD$ 0</span>
+    </div>
+    <div class="sum-row sr">
+      <span class="sum-label">↳ Materiales y logística</span>
+      <span class="sum-value" id="s-materiales">– RD$ 0</span>
+    </div>
+    <div class="sum-row sr">
+      <span class="sum-label">↳ Gastos indirectos institucionales</span>
+      <span class="sum-value" id="s-indirectos">– RD$ 0</span>
+    </div>
+    <div class="sum-row sr">
+      <span class="sum-label">↳ Promoción y publicidad</span>
+      <span class="sum-value" id="s-promo">– RD$ 0</span>
+    </div>
+    <div class="sum-row sr">
+      <span class="sum-label">↳ Imprevistos</span>
+      <span class="sum-value" id="s-imprevistos">– RD$ 0</span>
+    </div>
+    <div class="sum-row">
+      <span class="sum-label" style="color:#fff;font-weight:600">Total costos</span>
+      <span class="sum-value" style="color:#ff7a5a" id="s-costos">– RD$ 0</span>
+    </div>
+    <div class="sum-row">
+      <span class="sum-label" style="color:#fff">Ingreso neto universidad</span>
+      <span class="sum-value" id="s-neto">RD$ 0</span>
+    </div>
+    <div class="sum-row hl">
+      <span class="sum-label">💛 INGRESO FINAL UNIREMHOS</span>
+      <span class="sum-value" id="s-final">RD$ 0</span>
+    </div>
+  </div>
+
+  <!-- INDICADOR DE RENTABILIDAD -->
+  <div id="margin-card" class="margin-card good" style="margin-top:12px">
+    <div class="margin-left">
+      <div class="margin-pct" id="margin-pct">0%</div>
+      <div class="margin-label" id="margin-label">Calculando...</div>
+      <div class="margin-desc" id="margin-desc"></div>
+    </div>
+    <div class="margin-bar-wrap">
+      <div class="margin-bar-bg">
+        <div class="margin-bar-fill" id="margin-bar" style="width:0%"></div>
+      </div>
+      <div class="margin-scale">
+        <span>0%</span>
+        <span>25%</span>
+        <span>50%</span>
+        <span>75%</span>
+        <span>100%</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const NUM_MODULOS = 6;
+const fmt = n => 'RD$ ' + Math.round(n).toLocaleString('es-DO');
+
+// Build module table rows
+function buildModulos() {
+  const tbody = document.getElementById('modulos-body');
+  let rows = '';
+  for (let i = 1; i <= NUM_MODULOS; i++) {
+    rows += `<tr>
+      <td>Módulo ${i}</td>
+      <td class="right"><input class="mod-input" id="m${i}_teo" type="number" value="0" min="0" oninput="calcular()"></td>
+      <td class="right"><input class="mod-input" id="m${i}_prac" type="number" value="0" min="0" oninput="calcular()"></td>
+      <td class="mod-auto" id="m${i}_total">0 hrs</td>
+      <td class="mod-cost" id="m${i}_costo">RD$ 0</td>
+    </tr>`;
+  }
+  rows += `<tr class="mod-total-row">
+    <td colspan="3">Total horas docentes</td>
+    <td class="right" id="mod_total_hrs">0 hrs</td>
+    <td class="right neg" id="mod_total_costo">– RD$ 0</td>
+  </tr>`;
+  tbody.innerHTML = rows;
+}
+
+function calcular() {
+  const costoPart = parseFloat(document.getElementById('costo_part').value)||0;
+  const cantPart  = parseFloat(document.getElementById('cant_part').value)||0;
+  const precioHora= parseFloat(document.getElementById('precio_hora').value)||500;
+
+  const totalIngresos = costoPart * cantPart;
+  const pct = cantPart >= 16 ? 0.20 : 0.10;
+  const pctLabel = cantPart >= 16 ? '20% (16+ part.)' : '10% (menos de 16)';
+  const valCoord = totalIngresos * pct;
+
+  // Módulos
+  let totalHorasDoc = 0;
+  let totalCostoDoc = 0;
+  const modData = [];
+  for (let i = 1; i <= NUM_MODULOS; i++) {
+    const teo  = parseFloat(document.getElementById(`m${i}_teo`).value)||0;
+    const prac = parseFloat(document.getElementById(`m${i}_prac`).value)||0;
+    const tot  = teo + prac;
+    const cost = tot * precioHora;
+    totalHorasDoc += tot;
+    totalCostoDoc += cost;
+    modData.push({teo, prac, tot, cost});
+    document.getElementById(`m${i}_total`).textContent = tot + ' hrs';
+    document.getElementById(`m${i}_costo`).textContent = tot > 0 ? fmt(cost) : 'RD$ 0';
+  }
+  document.getElementById('mod_total_hrs').textContent = totalHorasDoc + ' hrs';
+  document.getElementById('mod_total_costo').textContent = '– ' + fmt(totalCostoDoc);
+
+  // Header totals
+  document.getElementById('total_horas_auto').textContent = totalHorasDoc + ' horas';
+  document.getElementById('total_ingresos_auto').textContent = fmt(totalIngresos);
+  document.getElementById('badge-part').textContent = cantPart > 0 ? cantPart+' participantes' : '';
+  document.getElementById('badge-coord-pct').textContent = pctLabel;
+  document.getElementById('val-ingresos').textContent = fmt(totalIngresos);
+  document.getElementById('val-coord').textContent = '– '+fmt(valCoord);
+  document.getElementById('hdr-ingresos').textContent = fmt(totalIngresos);
+  document.getElementById('hdr-modulos').textContent = fmt(totalCostoDoc);
+
+  // Materiales, promo, imprevistos
+  const mats = [...document.querySelectorAll('.mat')].reduce((a,m)=>a+(parseFloat(m.value)||0),0);
+  const promos= [...document.querySelectorAll('.promo')].reduce((a,m)=>a+(parseFloat(m.value)||0),0);
+  const imprevistos = parseFloat(document.getElementById('imprevistos').value)||0;
+  document.getElementById('hdr-materiales').textContent = fmt(mats);
+  document.getElementById('hdr-promo').textContent = fmt(promos);
+  document.getElementById('hdr-imprevistos').textContent = fmt(imprevistos);
+
+  const indirectos = parseFloat(document.getElementById('gastos_indirectos').value)||0;
+  document.getElementById('hdr-indirectos').textContent = fmt(indirectos);
+  document.getElementById('s-indirectos').textContent = '– '+fmt(indirectos);
+  const totalCostos = valCoord + totalCostoDoc + mats + promos + indirectos + imprevistos;
+  const ingresoFinal = totalIngresos - totalCostos;
+
+  // Summary module detail
+  let modDetail = '';
+  modData.forEach((m, i) => {
+    if (m.tot > 0) {
+      modDetail += `<div class="sum-row sr">
+        <span class="sum-label">↳ Módulo ${i+1} (${m.teo}h teóricas + ${m.prac}h prácticas)</span>
+        <span class="sum-value">– ${fmt(m.cost)}</span>
+      </div>`;
+    }
+  });
+  document.getElementById('s-modulos-detail').innerHTML = modDetail;
+
+  document.getElementById('s-ingresos').textContent = fmt(totalIngresos);
+  document.getElementById('s-coord').textContent = '– '+fmt(valCoord);
+  document.getElementById('s-modulos-total').textContent = '– '+fmt(totalCostoDoc);
+  document.getElementById('s-materiales').textContent = '– '+fmt(mats);
+  document.getElementById('s-promo').textContent = '– '+fmt(promos);
+  document.getElementById('s-imprevistos').textContent = '– '+fmt(imprevistos);
+  document.getElementById('s-costos').textContent = '– '+fmt(totalCostos);
+
+  const netoEl = document.getElementById('s-neto');
+  const finalEl = document.getElementById('s-final');
+  netoEl.textContent = fmt(ingresoFinal);
+  finalEl.textContent = fmt(ingresoFinal);
+  netoEl.style.color = ingresoFinal >= 0 ? '#1D9E75' : '#ff7a5a';
+  finalEl.style.color = ingresoFinal >= 0 ? '#E6A817' : '#ff7a5a';
+
+  // Margin indicator
+  const card  = document.getElementById('margin-card');
+  const pctEl = document.getElementById('margin-pct');
+  const lblEl = document.getElementById('margin-label');
+  const descEl= document.getElementById('margin-desc');
+  const barEl = document.getElementById('margin-bar');
+
+  if (totalIngresos <= 0) {
+    pctEl.textContent = '—';
+    lblEl.textContent = 'Ingresa los datos del curso';
+    descEl.textContent = '';
+    barEl.style.width = '0%';
+    card.className = 'margin-card mid';
+    return;
+  }
+
+  const margen = (ingresoFinal / totalIngresos) * 100;
+  pctEl.textContent = margen.toFixed(1) + '%';
+  barEl.style.width = Math.max(0, Math.min(100, margen)) + '%';
+
+  if (margen >= 50) {
+    card.className = 'margin-card good';
+    lblEl.textContent = '✅ Curso rentable — margen excelente';
+    descEl.textContent = 'La universidad retiene más del 50% de los ingresos. Este curso es viable y recomendable para continuar.';
+  } else if (margen >= 25) {
+    card.className = 'margin-card mid';
+    lblEl.textContent = '⚠️ Margen moderado — revisar costos';
+    descEl.textContent = 'El margen está entre 25% y 50%. Considera reducir costos de promoción o materiales, o aumentar el precio por participante.';
+  } else if (margen >= 0) {
+    card.className = 'margin-card bad';
+    lblEl.textContent = '🔴 Margen bajo — curso poco rentable';
+    descEl.textContent = 'La universidad retiene menos del 25% de los ingresos. Revisa los honorarios docentes, gastos indirectos y precio por participante.';
+  } else {
+    card.className = 'margin-card bad';
+    lblEl.textContent = '🔴 Pérdida — este curso no es viable';
+    descEl.textContent = 'Los costos superan los ingresos. No se recomienda aperturar este curso con estos parámetros.';
+  }
+}
+
+function exportExcel() {
+  const programa  = document.getElementById('programa').value||'Presupuesto EC';
+  const costoPart = parseFloat(document.getElementById('costo_part').value)||0;
+  const cantPart  = parseFloat(document.getElementById('cant_part').value)||0;
+  const precioHora= parseFloat(document.getElementById('precio_hora').value)||500;
+  const cantSem   = parseFloat(document.getElementById('cant_semanas').value)||0;
+
+  const totalIngresos = costoPart * cantPart;
+  const pct = cantPart >= 16 ? 0.20 : 0.10;
+  const valCoord = totalIngresos * pct;
+
+  const modData = [];
+  let totalHorasDoc = 0, totalCostoDoc = 0;
+  for (let i = 1; i <= NUM_MODULOS; i++) {
+    const teo  = parseFloat(document.getElementById(`m${i}_teo`).value)||0;
+    const prac = parseFloat(document.getElementById(`m${i}_prac`).value)||0;
+    const tot  = teo + prac;
+    const cost = tot * precioHora;
+    totalHorasDoc += tot; totalCostoDoc += cost;
+    modData.push({teo, prac, tot, cost});
+  }
+
+  const matVals  = [...document.querySelectorAll('.mat')].map(m=>parseFloat(m.value)||0);
+  const proVals  = [...document.querySelectorAll('.promo')].map(m=>parseFloat(m.value)||0);
+  const totalMat = matVals.reduce((a,b)=>a+b,0);
+  const totalPro = proVals.reduce((a,b)=>a+b,0);
+  const imprevistos  = parseFloat(document.getElementById('imprevistos').value)||0;
+  const indirectos   = parseFloat(document.getElementById('gastos_indirectos').value)||0;
+  const totalCostos  = valCoord + totalCostoDoc + totalMat + totalPro + indirectos + imprevistos;
+  const ingresoFinal = totalIngresos - totalCostos;
+
+  const data = [
+    ['PRESUPUESTO EDUCACIÓN CONTINUA — UNIREMHOS'],
+    ['Programa:', programa],
+    ['Fecha:', new Date().toLocaleDateString('es-DO')],
+    [],
+    ['DATOS DEL PROGRAMA'],
+    ['Costo por participante','RD$',costoPart],
+    ['Cantidad de participantes','',cantPart],
+    ['Cantidad de semanas','',cantSem],
+    ['Precio hora docente','RD$',precioHora],
+    ['Total horas docentes','',totalHorasDoc],
+    [],
+    ['INGRESOS'],
+    ['Total ingresos','RD$',totalIngresos],
+    [`Coordinación/quorum (${(pct*100).toFixed(0)}%)`,'RD$',-valCoord],
+    [],
+    ['MÓDULOS — HONORARIOS DOCENTES'],
+    ['Módulo','Hrs teóricas','Hrs prácticas','Total hrs','Costo RD$'],
+    ...modData.map((m,i)=>[`Módulo ${i+1}`,m.teo,m.prac,m.tot,-m.cost]),
+    ['Total módulos','','',totalHorasDoc,-totalCostoDoc],
+    [],
+    ['MATERIALES / LOGÍSTICA'],
+    ['Libretas','RD$',matVals[0]],['Lapiceros','RD$',matVals[1]],
+    ['Certificados','RD$',matVals[2]],['Impresión y encuadernado','RD$',matVals[3]],
+    ['Costo institucional (aulas)','RD$',matVals[4]],
+    ['Total materiales','RD$',totalMat],
+    [],
+    ['PROMOCIÓN / MERCADEO'],
+    ['Descuento % estudiantes','RD$',proVals[0]],
+    ['Prensa / Medios radiales','RD$',proVals[1]],
+    ['Redes sociales','RD$',proVals[2]],
+    ['Refrigerio / Café','RD$',proVals[3]],
+    ['Total promoción','RD$',totalPro],
+    [],
+    ['Gastos indirectos institucionales','RD$',indirectos],
+    ['IMPREVISTOS','RD$',imprevistos],
+    [],
+    ['RESUMEN FINAL'],
+    ['Total ingresos','RD$',totalIngresos],
+    ['Total costos','RD$',-totalCostos],
+    ['Ingreso neto universidad','RD$',ingresoFinal],
+    ['INGRESO FINAL UNIREMHOS','RD$',ingresoFinal],
+  ];
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:30},{wch:14},{wch:14},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Presupuesto');
+  XLSX.writeFile(wb, `Presupuesto_EC_${programa.replace(/\s+/g,'-')}.xlsx`);
+}
+
+buildModulos();
+calcular();
+</script>
+</body>
+</html>
