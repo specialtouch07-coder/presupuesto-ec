@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Presupuesto Educación Continua — UNIREMHOS</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f4f0; color: #1a1a18; min-height: 100vh; padding: 1.5rem 1rem 3rem; }
+    .container { max-width: 820px; margin: 0 auto; }
+
+    /* HEADER */
+    header { margin-bottom: 1.5rem; }
+    .header-top { background: #1a1a18; border-radius: 12px 12px 0 0; padding: 1.25rem 1.5rem 1rem; }
+    .header-top .label { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #888; margin-bottom: 4px; }
+    .header-top h1 { font-size: 22px; font-weight: 700; color: #fff; line-height: 1.2; }
+    .header-top p  { font-size: 13px; color: #aaa; margin-top: 4px; }
+    .header-band { background: #F5A800; border-radius: 0 0 12px 12px; padding: .5rem 1.5rem; font-size: 12px; font-weight: 600; color: #1a1a18; display: flex; justify-content: space-between; align-items: center; }
+
+    /* CARDS */
+    .card { background: #fff; border: 1px solid #e5e3de; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+    .card h2 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #999; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; }
+    .card h2 span.dot { width: 8px; height: 8px; border-radius: 50%; background: #F5A800; display: inline-block; }
+    .section-num { color: #F5A800; margin-right: 2px; }
+
+    /* FORM */
+    .form-row { display: grid; gap: 12px; margin-bottom: 12px; }
+    .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+    .form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+    input[type="number"], input[type="text"], select { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px 11px; font-size: 14px; font-family: inherit; color: #1a1a18; outline: none; background: #fff; transition: border-color .15s; }
+    input:focus, select:focus { border-color: #F5A800; }
+    input[readonly] { background: #f8f7f4; color: #555; }
+
+    /* INFO BOX */
+    .info-box { border-radius: 8px; padding: .75rem 1rem; font-size: 12px; display: flex; gap: 8px; align-items: flex-start; margin-bottom: 12px; background: #fffbeb; border: 1px solid #FDE68A; color: #78350F; }
+    .info-box.green { background: #f0fdf4; border-color: #BBF7D0; color: #065F46; }
+    .info-box.blue  { background: #eff6ff; border-color: #BFDBFE; color: #1E40AF; }
+
+    /* TOGGLE */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: .75rem 0; border-bottom: 1px solid #f0ede8; }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-label { font-size: 13px; font-weight: 500; }
+    .toggle-sub   { font-size: 11px; color: #888; margin-top: 2px; }
+    .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; cursor: pointer; background: #ddd; border-radius: 22px; transition: .2s; }
+    .toggle-slider:before { content: ""; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+    .toggle input:checked + .toggle-slider { background: #F5A800; }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+    /* MÓDULOS */
+    .modulo-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1.2fr 0.3fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .modulo-row.header span { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+    .modulo-total { background: #f8f7f4; border-radius: 6px; padding: 7px 10px; font-size: 13px; font-weight: 600; text-align: right; }
+    .btn-add { background: none; border: 1px dashed #ccc; border-radius: 8px; padding: 8px; width: 100%; font-size: 13px; color: #888; cursor: pointer; margin-top: 4px; transition: all .15s; }
+    .btn-add:hover { border-color: #F5A800; color: #F5A800; }
+    .btn-del { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0 4px; transition: color .15s; }
+    .btn-del:hover { color: #ef4444; }
+
+    hr { border: none; border-top: 1px solid #eee; margin: 12px 0; }
+
+    /* RESUMEN */
+    .res-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0ede8; font-size: 14px; }
+    .res-row:last-child { border-bottom: none; }
+    .res-row.sub { padding-left: 1rem; }
+    .res-row.sub .lbl { color: #888; font-size: 13px; }
+    .res-row.sub .val { color: #888; font-size: 13px; font-weight: 600; }
+    .res-row .lbl { color: #555; }
+    .res-row .val { font-weight: 600; }
+    .res-row.rojo .val { color: #ef4444; }
+    .res-row.neto { background: #f0fdf4; border-radius: 8px; padding: 10px 12px; margin: 8px 0; }
+    .res-row.neto .val { font-size: 18px; color: #065F46; }
+    .ingreso-final { background: #1a1a18; border-radius: 10px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    .ingreso-final .lf  { color: #F5A800; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+    .ingreso-final .vf  { color: #fff; font-size: 24px; font-weight: 700; }
+
+    /* BARRA */
+    .barra-wrap { margin-top: 1rem; }
+    .barra-labels { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; margin-bottom: 4px; }
+    .barra-bg { background: #eee; border-radius: 20px; height: 10px; overflow: hidden; }
+    .barra-fill { height: 100%; border-radius: 20px; background: #F5A800; transition: width .4s; }
+    .barra-pct { text-align: center; font-size: 12px; color: #888; margin-top: 4px; }
+
+    .btn-export { background: #1a1a18; color: #fff; border: none; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-family: inherit; font-weight: 600; cursor: pointer; transition: background .15s; }
+    .btn-export:hover { background: #333; }
+
+    .subtotal-line { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; }
+    .subtotal-line span:first-child { font-size: 13px; color: #555; font-weight: 500; }
+    .subtotal-line span:last-child  { font-size: 16px; font-weight: 700; }
+
+    @media (max-width: 560px) {
+      .form-row.cols-3 { grid-template-columns: 1fr 1fr; }
+      .modulo-row { grid-template-columns: 1fr 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-top">
+      <p class="label">Universidad UNIREMHOS — Eugenio María de Hostos</p>
+      <h1>Presupuesto Educación Continua</h1>
+      <p>Documento interno · Dirección de Educación Continuada</p>
+    </div>
+    <div class="header-band">
+      <span>Versión 2.1 · Esquema de compensación actualizado</span>
+      <button class="btn-export" onclick="exportarExcel()">⬇ Exportar Excel</button>
+    </div>
+  </header>
+
+  <!-- 1. DATOS DEL PROGRAMA -->
+  <div class="card">
+    <h2><span class="dot"></span><span class="section-num">1.</span> Datos del programa</h2>
+    <div class="form-row cols-2">
+      <div>
+        <label>Nombre del programa</label>
+        <input type="text" id="nombre" placeholder="Ej. Taller de RCP" oninput="calcular()" />
+      </div>
+      <div>
+        <label>Tipo de programa</label>
+        <select id="tipo" onchange="onTipoChange()">
+          <option value="taller">Taller</option>
+          <option value="curso">Curso</option>
+          <option value="diplomado">Diplomado</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row cols-3">
+      <div>
+        <label>Costo por participante (RD$)</label>
+        <input type="number" id="costoPart" value="3000" min="0" oninput="calcular()" />
+      </div>
+      <div>
+        <label>Cantidad de participantes</label>
+        <input type="number" id="participantes" value="15" min="1" oninput="calcular()" />
+      </div>
+      <div>
+        <label>Cantidad de semanas</label>
+        <input type="number" id="semanas" value="1" min="1" oninput="calcular()" />
+      </div>
+    </div>
+    <div class="form-row cols-3">
+      <div>
+        <label>Precio hora docente (RD$)</label>
+        <input type="number" id="precioHora" value="500" min="0" oninput="calcular()" />
+      </div>
+      <div>
+        <label>Total horas (automático)</label>
+        <input type="text" id="totalHoras" readonly value="0 horas" />
+      </div>
+      <div id="wrap-mensualidad" style="display:none;">
+        <label>Mensualidad por participante (RD$)</label>
+        <input type="number" id="mensualidad" value="0" min="0" oninput="calcular()" />
+      </div>
+    </div>
+    <div class="form-row cols-2">
+      <div>
+        <label>Total recaudado (automático)</label>
+        <input type="text" id="totalIngresos" readonly value="RD$ 0" />
+      </div>
+    </div>
+    <div class="info-box" id="info-quorum">
+      ⚠️ <span id="msg-quorum">Se requiere un mínimo de 15 participantes para aperturar el programa.</span>
+    </div>
+  </div>
+
+  <!-- 2. FORMADOR DE GRUPOS -->
+  <div class="card">
+    <h2><span class="dot"></span><span class="section-num">2.</span> Formador de grupos</h2>
+    <div class="info-box green">
+      📋 <span id="info-formador">El formador de grupos recibe <strong>10%</strong> del total recaudado (talleres y cursos). En diplomados el porcentaje es <strong>5%</strong>. Se paga al completar el mínimo de participantes.</span>
+    </div>
+    <div class="form-row cols-2">
+      <div>
+        <label>% Formador de grupos <small style="color:#aaa;">(editable · 10% talleres/cursos · 5% diplomados)</small></label>
+        <input type="number" id="pctFormador" min="0" max="100" step="0.5" oninput="calcular()" />
+      </div>
+      <div>
+        <label>Monto formador de grupos (RD$)</label>
+        <input type="text" id="montoFormador" readonly />
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. COORDINADOR ESPECIAL + FACILITADOR HOSPITAL -->
+  <div class="card">
+    <h2><span class="dot"></span><span class="section-num">3.</span> Figuras especiales <span style="font-size:10px;font-weight:400;color:#bbb;text-transform:none;letter-spacing:0;">(activar solo cuando aplique)</span></h2>
+
+    <!-- Coordinador especial -->
+    <div class="toggle-row">
+      <div>
+        <p class="toggle-label">Coordinador especial</p>
+        <p class="toggle-sub">Monto fijo por programa · Por defecto RD$10,000 · Casos especiales únicamente</p>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggleCoord" onchange="toggleCoordChange()" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div id="coord-detalle" style="display:none;margin-top:12px;margin-bottom:12px;">
+      <div class="info-box blue">
+        👤 Honorario fijo por programa. Por defecto RD$10,000 — editable según acuerdo.
+      </div>
+      <div class="form-row cols-2">
+        <div>
+          <label>Nombre del coordinador</label>
+          <input type="text" id="nombreCoord" placeholder="Nombre completo" />
+        </div>
+        <div>
+          <label>Monto fijo (RD$) <small style="color:#aaa;">(editable)</small></label>
+          <input type="number" id="montoCoordInput" value="10000" min="0" oninput="calcular()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Facilitador hospital -->
+    <div class="toggle-row">
+      <div>
+        <p class="toggle-label">Facilitador en hospital</p>
+        <p class="toggle-sub">Monto por grupo · Para programas con práctica hospitalaria</p>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggleFacilitador" onchange="toggleFacilitadorChange()" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div id="facilitador-detalle" style="display:none;margin-top:12px;">
+      <div class="info-box blue">
+        🏥 El facilitador en hospital recibe un monto fijo por grupo. Ingresa el monto por grupo y la cantidad de grupos.
+      </div>
+      <div class="form-row cols-3">
+        <div>
+          <label>Nombre del facilitador</label>
+          <input type="text" id="nombreFacilitador" placeholder="Nombre completo" />
+        </div>
+        <div>
+          <label>Monto por grupo (RD$)</label>
+          <input type="number" id="facilitadorMonto" value="0" min="0" oninput="calcular()" />
+        </div>
+        <div>
+          <label>Cantidad de grupos</label>
+          <input type="number" id="facilitadorGrupos" value="1" min="1" oninput="calcular()" />
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div>
+          <label>Total facilitador hospital (automático)</label>
+          <input type="text" id="facilitadorTotal" readonly />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. MÓDULOS — HONORARIOS DOCENTES -->
+  <div class="card">
+    <h2><span class="dot"></span><span class="section-num">4.</span> Módulos — Honorarios docentes</h2>
+
+    <div class="modulo-row header">
+      <span>Módulo / Sesión</span>
+      <span style="text-align:center;">Hrs teóricas</span>
+      <span style="text-align:center;">Hrs prácticas</span>
+      <span style="text-align:center;">Hrs virtuales</span>
+      <span style="text-align:right;">Costo (RD$)</span>
+      <span></span>
+    </div>
+    <div id="modulos-list"></div>
+    <button class="btn-add" onclick="agregarModulo()">+ Agregar módulo</button>
+
+    <hr />
+
+    <!-- Docente externo / hospital -->
+    <div class="toggle-row">
+      <div>
+        <p class="toggle-label">Incluir docente externo / hospital</p>
+        <p class="toggle-sub">Tarifa libre — el usuario define el valor por hora</p>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggleHospital" onchange="toggleHospitalChange()" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div id="hospital-detalle" style="display:none;margin-top:12px;">
+      <div class="info-box blue">
+        🏫 El docente externo recibe un monto fijo por grupo. Ingresa el monto por grupo y la cantidad de grupos.
+      </div>
+      <div class="form-row cols-3">
+        <div>
+          <label>Nombre / Especialidad</label>
+          <input type="text" id="hospitalNombre" placeholder="Ej. Dr. García — Nefrología" />
+        </div>
+        <div>
+          <label>Monto por grupo (RD$)</label>
+          <input type="number" id="hospitalTarifa" value="0" min="0" oninput="calcular()" />
+        </div>
+        <div>
+          <label>Cantidad de grupos</label>
+          <input type="number" id="hospitalHoras" value="1" min="1" oninput="calcular()" />
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div>
+          <label>Total docente externo (automático)</label>
+          <input type="text" id="hospitalTotal" readonly />
+        </div>
+      </div>
+    </div>
+
+    <hr />
+    <div class="subtotal-line">
+      <span>Total honorarios docentes</span>
+      <span id="totalDocentes">RD$ 0</span>
+    </div>
+  </div>
+
+  <!-- 5. MATERIALES Y LOGÍSTICA -->
+  <div class="card">
+    <h2><span class="dot"></span><span class="section-num">5.</span> Materiales / Logística</h2>
+    <div class="form-row cols-3">
+      <div><label>Libretas (RD$)</label><input type="number" id="mat_libretas" value="0" min="0" oninput="calcular()" /></div>
+      <div><label>Lapiceros (RD$)</label><input type="number" id="mat_lapiceros" value="0" min="0" oninput="calcular()" /></div>
+      <div>
+        <label>Diplomas / Certificados — precio por unidad (RD$) <small style="color:#aaa;">× participantes</small></label>
+        <input type="number" id="mat_diplomas_precio" value="0" min="0" oninput="calcular()" />
+      </div>
+      <div>
+        <label>Total diplomas (automático)</label>
+        <input type="text" id="mat_diplomas_total" readonly />
+      </div>
+      <div><label>Impresión y encuadernado (RD$)</label><input type="number" id="mat_impresion" value="0" min="0" oninput="calcular()" /></div>
+      <div><label>Materiales consumibles práctica clínica (RD$) <small style="color:#aaa;">guantes, jeringas, gasas…</small></label><input type="number" id="mat_clinicos" value="0" min="0" oninput="calcular()" /></div>
+      <div><label>Equipos / Simuladores — alquiler o depreciación (RD$)</label><input type="number" id="mat_equipos" value="0" min="0" oninput="calcular()" /></div>
+      <div>
+        <label>Tipo de aula</label>
+        <select id="mat_aula_tipo" onchange="onAulaTipoChange()">
+          <option value="0">Sin aula / No aplica</option>
+          <option value="estandar">Aula estándar — hasta 15 estudiantes</option>
+          <option value="grande">Aula grande — más de 15 estudiantes</option>
+        </select>
+      </div>
+      <div id="wrap_aula_hora" style="display:none;">
+        <label>Tarifa por hora del aula (RD$) <small style="color:#aaa;">× total horas del programa</small></label>
+        <input type="number" id="mat_aula_hora" value="0" min="0" oninput="calcular()" />
+      </div>
+      <div id="wrap_aula_total" style="display:none;">
+        <label>Total aula (automático)</label>
+        <input type="text" id="mat_aula_total" readonly />
+      </div>
+      <div><label>Otros materiales (RD$)</label><input type="number" id="mat_otros" value="0" min="0" oninput="calcular()" /></div>
+    </div>
+    <div class="subtotal-line">
+      <span>Total materiales</span>
+      <span id="totalMateriales">RD$ 0</span>
+    </div>
+  </div>
+
+  <!-- 6. GASTOS INDIRECTOS -->
+  <div class="card">
+    <h2><span class="dot"></span><span class="section-num">6.</span> Gastos Indirectos Institucionales</h2>
+
+    <div class="form-row cols-3">
+      <div>
+        <label>Áreas involucradas — admin (% sobre recaudado) <small style="color:#aaa;">referencial 2%</small></label>
+        <input type="number" id="gi_admin_pct" value="2" min="0" max="100" step="0.5" oninput="calcular()" />
+      </div>
+      <div>
+        <label>Total áreas admin (automático)</label>
+        <input type="text" id="gi_admin_total" readonly />
+      </div>
+      <div>
+        <label>Procesamiento bancario (% sobre recaudado) <small style="color:#aaa;">referencial 1.5%</small></label>
+        <input type="number" id="gi_banco_pct" value="1.5" min="0" max="100" step="0.5" oninput="calcular()" />
+      </div>
+      <div>
+        <label>Total procesamiento bancario (automático)</label>
+        <input type="text" id="gi_banco_total" readonly />
+      </div>
+      <div>
+        <label>Limpieza e higiene — monto por encuentro (RD$) <small style="color:#aaa;">referencial RD$300</small></label>
+        <input type="number" id="gi_limpieza" value="300" min="0" oninput="calcular()" />
+      </div>
+      <div>
+        <label>Número de encuentros</label>
+        <input type="number" id="gi_encuentros" value="1" min="1" oninput="calcular()" />
+      </div>
+      <div>
+        <label>Total limpieza (automático)</label>
+        <input type="text" id="gi_limpieza_total" readonly />
+      </div>
+      <div>
+        <label>Plataforma virtual — tarifa por hora virtual (RD$) <small style="color:#aaa;">Teams / Zoom / Moodle</small></label>
+        <input type="number" id="gi_plataforma_tarifa" value="" min="0" placeholder="Ingresa la tarifa por hora" oninput="calcular()" />
+      </div>
+      <div>
+        <label>Total plataforma virtual (automático)</label>
+        <input type="text" id="gi_plataforma_total" readonly />
+      </div>
+      <div><label>Internet y conectividad (RD$)</label><input type="number" id="gi_internet" value="0" min="0" oninput="calcular()" /></div>
+    </div>
+
+    <!-- Refrigerios — toggle -->
+    <div class="toggle-row">
+      <div>
+        <p class="toggle-label">Incluir refrigerios / café</p>
+        <p class="toggle-sub">Solo cuando el programa lo requiera</p>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggleRefri" onchange="toggleRefriChange()" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div id="refri-detalle" style="display:none;margin-top:12px;margin-bottom:12px;">
+      <div class="form-row cols-2">
+        <div>
+          <label>Monto refrigerios / café (RD$)</label>
+          <input type="number" id="gi_refri" value="" min="0" placeholder="Ingresa el monto" oninput="calcular()" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row cols-2" style="margin-top:8px;">
+      <div>
+        <label>Dieta / Honorarios invitados (RD$) <small style="color:#aaa;">— cuando aplique</small></label>
+        <input type="number" id="gi_invitados" value="0" min="0" oninput="calcular()" />
+      </div>
+      <div><label>Otros gastos institucionales (RD$)</label><input type="number" id="gi_otros" value="0" min="0" oninput="calcular()" /></div>
+    </div>
+
+    <div class="subtotal-line">
+      <span>Total gastos indirectos</span>
+      <span id="totalIndirectos">RD$ 0</span>
+    </div>
+  </div>
+
+  <!-- 7. PROMOCIÓN -->
+  <div class="card">
+    <h2><span class="dot"></span><span class="section-num">7.</span> Promoción / Mercadeo / Publicidad</h2>
+    <div class="form-row cols-3">
+      <div>
+        <label>Redes sociales (% sobre recaudado) <small style="color:#aaa;">referencial 3%</small></label>
+        <input type="number" id="prom_redes_pct" value="3" min="0" max="100" step="0.5" oninput="calcular()" />
+      </div>
+      <div>
+        <label>Total redes sociales (automático)</label>
+        <input type="text" id="prom_redes_total" readonly />
+      </div>
+      <div>
+        <label>Descuentos a estudiantes (% sobre recaudado) <small style="color:#aaa;">referencial 0%</small></label>
+        <input type="number" id="prom_descuento_pct" value="0" min="0" max="100" step="0.5" oninput="calcular()" />
+      </div>
+      <div>
+        <label>Total descuentos (automático)</label>
+        <input type="text" id="prom_descuento_total" readonly />
+      </div>
+      <div><label>Prensa / Medios radiales (RD$)</label><input type="number" id="prom_prensa" value="0" min="0" oninput="calcular()" /></div>
+      <div><label>Otros promoción (RD$)</label><input type="number" id="prom_otros" value="0" min="0" oninput="calcular()" /></div>
+    </div>
+    <div class="subtotal-line">
+      <span>Total promoción</span>
+      <span id="totalPromocion">RD$ 0</span>
+    </div>
+  </div>
+
+  <!-- 8. IMPREVISTOS -->
+  <div class="card">
+    <h2><span class="dot"></span><span class="section-num">8.</span> Imprevistos</h2>
+    <div class="form-row cols-2">
+      <div><label>Monto imprevistos (RD$)</label><input type="number" id="imp_monto" value="0" min="0" oninput="calcular()" /></div>
+    </div>
+    <div class="subtotal-line">
+      <span>Total imprevistos</span>
+      <span id="totalImprevistos">RD$ 0</span>
+    </div>
+  </div>
+
+  <!-- 9. RESUMEN -->
+  <div class="card">
+    <h2><span class="dot"></span><span class="section-num">9.</span> Resumen del presupuesto</h2>
+
+    <div class="res-row">
+      <span class="lbl" style="font-weight:600;">Total ingresos</span>
+      <span class="val" id="res_ingresos">RD$ 0</span>
+    </div>
+    <div class="res-row sub">
+      <span class="lbl" id="res_label_formador">↳ Formador de grupos (10%)</span>
+      <span class="val" id="res_formador">– RD$ 0</span>
+    </div>
+    <div class="res-row sub" id="res_row_coord" style="display:none;">
+      <span class="lbl">↳ Coordinador especial (fijo)</span>
+      <span class="val" id="res_coord_val">– RD$ 0</span>
+    </div>
+    <div class="res-row sub" id="res_row_facilitador" style="display:none;">
+      <span class="lbl">↳ Facilitador en hospital</span>
+      <span class="val" id="res_facilitador_val">– RD$ 0</span>
+    </div>
+    <div class="res-row sub">
+      <span class="lbl">↳ Total honorarios docentes</span>
+      <span class="val" id="res_docentes">– RD$ 0</span>
+    </div>
+    <div class="res-row sub">
+      <span class="lbl">↳ Materiales y logística</span>
+      <span class="val" id="res_materiales">– RD$ 0</span>
+    </div>
+    <div class="res-row sub">
+      <span class="lbl">↳ Gastos indirectos institucionales</span>
+      <span class="val" id="res_indirectos">– RD$ 0</span>
+    </div>
+    <div class="res-row sub">
+      <span class="lbl">↳ Promoción y publicidad</span>
+      <span class="val" id="res_promocion">– RD$ 0</span>
+    </div>
+    <div class="res-row sub">
+      <span class="lbl">↳ Imprevistos</span>
+      <span class="val" id="res_imprevistos">– RD$ 0</span>
+    </div>
+
+    <hr />
+
+    <div class="res-row rojo">
+      <span class="lbl" style="font-weight:600;">Total costos</span>
+      <span class="val" id="res_costos">– RD$ 0</span>
+    </div>
+
+    <div class="res-row neto">
+      <span class="lbl" style="font-weight:600;">Ingreso neto universidad</span>
+      <span class="val" id="res_neto">RD$ 0</span>
+    </div>
+
+    <div class="ingreso-final">
+      <span class="lf">💛 Ingreso final UNIREMHOS</span>
+      <span class="vf" id="res_final">RD$ 0</span>
+    </div>
+
+    <div class="barra-wrap">
+      <div class="barra-labels"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+      <div class="barra-bg"><div class="barra-fill" id="barra" style="width:0%"></div></div>
+      <div class="barra-pct" id="barra-pct">Calculando...</div>
+    </div>
+  </div>
+
+</div>
+<script>
+let modulos = [
+  { nombre: "Módulo 1", hTeo: 0, hPrac: 0, hVirtual: 0 },
+  { nombre: "Módulo 2", hTeo: 0, hPrac: 0, hVirtual: 0 },
+  { nombre: "Módulo 3", hTeo: 0, hPrac: 0, hVirtual: 0 },
+];
+let moduloId = 3;
+
+const fmt = n => 'RD$ ' + Math.round(n).toLocaleString('es-DO');
+const v   = id => parseFloat(document.getElementById(id)?.value) || 0;
+
+function onTipoChange() {
+  const tipo = document.getElementById('tipo').value;
+  document.getElementById('wrap-mensualidad').style.display = tipo === 'diplomado' ? 'block' : 'none';
+  document.getElementById('pctFormador')._touched = false;
+  calcular();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('pctFormador').addEventListener('input', function() { this._touched = true; });
+});
+
+function toggleCoordChange() {
+  const on = document.getElementById('toggleCoord').checked;
+  document.getElementById('coord-detalle').style.display = on ? 'block' : 'none';
+  document.getElementById('res_row_coord').style.display = on ? 'flex'  : 'none';
+  calcular();
+}
+
+function toggleRefriChange() {
+  const on = document.getElementById('toggleRefri').checked;
+  document.getElementById('refri-detalle').style.display = on ? 'block' : 'none';
+  if (!on) { const el = document.getElementById('gi_refri'); if(el) el.value = ''; }
+  calcular();
+}
+
+function toggleHospitalChange() {
+  const on = document.getElementById('toggleHospital').checked;
+  document.getElementById('hospital-detalle').style.display = on ? 'block' : 'none';
+  calcular();
+}
+
+function toggleFacilitadorChange() {
+  const on = document.getElementById('toggleFacilitador').checked;
+  document.getElementById('facilitador-detalle').style.display = on ? 'block' : 'none';
+  document.getElementById('res_row_facilitador').style.display = on ? 'flex' : 'none';
+  calcular();
+}
+
+function renderModulos() {
+  const list = document.getElementById('modulos-list');
+  list.innerHTML = '';
+  modulos.forEach((m, i) => {
+    const row = document.createElement('div');
+    row.className = 'modulo-row';
+    row.innerHTML = `
+      <input type="text" value="${m.nombre}" placeholder="Módulo ${i+1}"
+        onchange="modulos[${i}].nombre=this.value" style="font-size:13px;" />
+      <input type="number" value="${m.hTeo}" min="0" placeholder="0"
+        oninput="modulos[${i}].hTeo=+this.value;calcular()" style="text-align:center;" />
+      <input type="number" value="${m.hPrac}" min="0" placeholder="0"
+        oninput="modulos[${i}].hPrac=+this.value;calcular()" style="text-align:center;" />
+      <input type="number" value="${m.hVirtual||0}" min="0" placeholder="0"
+        oninput="modulos[${i}].hVirtual=+this.value;calcular()" style="text-align:center;" />
+      <div class="modulo-total" id="mod-total-${i}">RD$ 0</div>
+      <button class="btn-del" onclick="eliminarModulo(${i})" title="Eliminar">×</button>`;
+    list.appendChild(row);
+  });
+  calcular();
+}
+
+function agregarModulo() {
+  moduloId++;
+  modulos.push({ nombre: `Módulo ${moduloId}`, hTeo: 0, hPrac: 0 });
+  renderModulos();
+}
+
+function eliminarModulo(i) {
+  if (modulos.length === 1) return;
+  modulos.splice(i, 1);
+  renderModulos();
+}
+
+function onAulaTipoChange() {
+  const tipo   = document.getElementById('mat_aula_tipo').value;
+  const show   = tipo !== '0';
+  document.getElementById('wrap_aula_hora').style.display  = show ? 'block' : 'none';
+  document.getElementById('wrap_aula_total').style.display = show ? 'block' : 'none';
+  if (!show) {
+    document.getElementById('mat_aula_hora').value = 0;
+  } else {
+    document.getElementById('mat_aula_hora').value = tipo === 'estandar' ? 200 : 300;
+  }
+  calcular();
+}
+
+function calcular() {
+  const tipo          = document.getElementById('tipo').value;
+  const costoPart     = v('costoPart');
+  const participantes = v('participantes');
+  const precioHora    = v('precioHora');
+  const mensualidad   = v('mensualidad');
+
+  // Quorum
+  const quorumOk = participantes >= 15;
+  const infoQ = document.getElementById('info-quorum');
+  const msgQ  = document.getElementById('msg-quorum');
+  if (quorumOk) {
+    infoQ.className = 'info-box green';
+    msgQ.textContent = `✅ Mínimo alcanzado (${participantes} participantes). El pago se libera al completar el 100% de los cobros.`;
+  } else {
+    infoQ.className = 'info-box';
+    msgQ.textContent = `⚠️ Se requiere un mínimo de 15 participantes. Actualmente: ${participantes}.`;
+  }
+
+  // Ingresos
+  let totalRecaudado = costoPart * participantes;
+  if (tipo === 'diplomado') totalRecaudado += mensualidad * participantes;
+  document.getElementById('totalIngresos').value = fmt(totalRecaudado);
+
+  // Formador de grupos — % editable, se inicializa al cambiar tipo si el campo está vacío
+  const defaultPct = tipo === 'diplomado' ? 5 : 10;
+  const pctEl = document.getElementById('pctFormador');
+  if (!pctEl._touched) pctEl.value = defaultPct;
+  const pctForm   = parseFloat(pctEl.value) || 0;
+  const montoForm = totalRecaudado * (pctForm / 100);
+  document.getElementById('montoFormador').value = fmt(montoForm);
+  document.getElementById('info-formador').innerHTML = tipo === 'diplomado'
+    ? `El formador de grupos recibe <strong>${pctForm}%</strong> del total recaudado en diplomados. Se paga al completar el mínimo de participantes.`
+    : `El formador de grupos recibe <strong>${pctForm}%</strong> del total recaudado (talleres y cursos). Se paga al completar el mínimo de participantes.`;
+  document.getElementById('res_label_formador').textContent = `↳ Formador de grupos (${pctForm}%)`;
+  document.getElementById('res_formador').textContent = '– ' + fmt(montoForm);
+
+  // Coordinador especial
+  const conCoord   = document.getElementById('toggleCoord').checked;
+  const montoCoord = conCoord ? (parseFloat(document.getElementById('montoCoordInput')?.value) || 0) : 0;
+  if (document.getElementById('res_coord_val'))
+    document.getElementById('res_coord_val').textContent = '– ' + fmt(montoCoord);
+
+  // Facilitador hospital
+  const conFacilitador = document.getElementById('toggleFacilitador').checked;
+  let montoFacilitador = 0;
+  if (conFacilitador) {
+    const mxg = parseFloat(document.getElementById('facilitadorMonto')?.value) || 0;
+    const grp = parseFloat(document.getElementById('facilitadorGrupos')?.value) || 1;
+    montoFacilitador = mxg * grp;
+    if (document.getElementById('facilitadorTotal'))
+      document.getElementById('facilitadorTotal').value = fmt(montoFacilitador);
+    if (document.getElementById('res_facilitador_val'))
+      document.getElementById('res_facilitador_val').textContent = '– ' + fmt(montoFacilitador);
+  }
+
+  // Módulos
+  let totalHoras = 0, totalHorasVirtuales = 0, totalHonorariosModulos = 0;
+  modulos.forEach((m, i) => {
+    const hrs        = (m.hTeo || 0) + (m.hPrac || 0);
+    const hrsVirtual = m.hVirtual || 0;
+    const costo      = hrs * precioHora;
+    totalHoras          += hrs;
+    totalHorasVirtuales += hrsVirtual;
+    totalHonorariosModulos += costo;
+    const el = document.getElementById(`mod-total-${i}`);
+    if (el) el.textContent = fmt(costo);
+  });
+  document.getElementById('totalHoras').value = totalHoras + ' horas  (' + totalHorasVirtuales + ' virtuales)';
+
+  // Plataforma virtual — costo por hora virtual
+  const tarifaPlataforma = v('gi_plataforma_tarifa');
+  const costoPlataforma  = tarifaPlataforma * totalHorasVirtuales;
+  if (document.getElementById('gi_plataforma_total'))
+    document.getElementById('gi_plataforma_total').value = costoPlataforma > 0
+      ? fmt(costoPlataforma) + '  (' + totalHorasVirtuales + ' hrs × ' + fmt(tarifaPlataforma) + ')'
+      : totalHorasVirtuales > 0 ? totalHorasVirtuales + ' hrs virtuales — sin tarifa asignada' : 'RD$ 0';
+
+  // Docente externo / hospital
+  const conHospital = document.getElementById('toggleHospital').checked;
+  let montoHospital = 0;
+  if (conHospital) {
+    montoHospital = v('hospitalTarifa') * v('hospitalHoras');
+    document.getElementById('hospitalTotal').value = fmt(montoHospital);
+  }
+  const totalDocentes = totalHonorariosModulos + montoHospital;
+  document.getElementById('totalDocentes').textContent = fmt(totalDocentes);
+
+  // Materiales
+  const diplomasPrecio = v('mat_diplomas_precio');
+  const diplomasTotal  = diplomasPrecio * participantes;
+  if (document.getElementById('mat_diplomas_total'))
+    document.getElementById('mat_diplomas_total').value = fmt(diplomasTotal);
+
+  const aulaHora  = v('mat_aula_hora');
+  const aulaTipo  = document.getElementById('mat_aula_tipo')?.value || '0';
+  const aulaTotal = aulaTipo !== '0' ? aulaHora * totalHoras : 0;
+  if (document.getElementById('mat_aula_total'))
+    document.getElementById('mat_aula_total').value = aulaTipo !== '0'
+      ? fmt(aulaTotal) + '  (' + totalHoras + ' hrs × ' + fmt(aulaHora) + ')'
+      : 'RD$ 0';
+
+  const totalMat = v('mat_libretas') + v('mat_lapiceros') + diplomasTotal
+                 + v('mat_impresion') + v('mat_clinicos') + v('mat_equipos')
+                 + aulaTotal + v('mat_otros');
+  document.getElementById('totalMateriales').textContent = fmt(totalMat);
+
+  // Gastos indirectos
+  const gi_admin_pct   = v('gi_admin_pct');
+  const gi_admin_monto = totalRecaudado * (gi_admin_pct / 100);
+  if (document.getElementById('gi_admin_total'))
+    document.getElementById('gi_admin_total').value = fmt(gi_admin_monto) + '  (' + gi_admin_pct + '% recaudado)';
+
+  const gi_banco_pct   = v('gi_banco_pct');
+  const gi_banco_monto = totalRecaudado * (gi_banco_pct / 100);
+  if (document.getElementById('gi_banco_total'))
+    document.getElementById('gi_banco_total').value = fmt(gi_banco_monto) + '  (' + gi_banco_pct + '% recaudado)';
+
+  const gi_encuentros   = v('gi_encuentros') || 1;
+  const gi_limpieza_u   = v('gi_limpieza');
+  const gi_limpieza_tot = gi_limpieza_u * gi_encuentros;
+  if (document.getElementById('gi_limpieza_total'))
+    document.getElementById('gi_limpieza_total').value = fmt(gi_limpieza_tot) + '  (' + gi_encuentros + ' encuentro(s))';
+
+  const gi_refri_on = document.getElementById('toggleRefri').checked;
+  const gi_refri    = gi_refri_on ? v('gi_refri') : 0;
+
+  const totalGI = gi_admin_monto + gi_banco_monto + gi_limpieza_tot + gi_refri
+                + costoPlataforma + v('gi_internet') + v('gi_invitados') + v('gi_otros');
+  document.getElementById('totalIndirectos').textContent = fmt(totalGI);
+
+  // Promoción
+  const prom_redes_pct   = v('prom_redes_pct');
+  const prom_redes_monto = totalRecaudado * (prom_redes_pct / 100);
+  if (document.getElementById('prom_redes_total'))
+    document.getElementById('prom_redes_total').value = fmt(prom_redes_monto) + '  (' + prom_redes_pct + '% recaudado)';
+
+  const prom_desc_pct   = v('prom_descuento_pct');
+  const prom_desc_monto = totalRecaudado * (prom_desc_pct / 100);
+  if (document.getElementById('prom_descuento_total'))
+    document.getElementById('prom_descuento_total').value = fmt(prom_desc_monto) + '  (' + prom_desc_pct + '% recaudado)';
+
+  const totalProm = prom_redes_monto + prom_desc_monto + v('prom_prensa') + v('prom_otros');
+  document.getElementById('totalPromocion').textContent = fmt(totalProm);
+
+  // Imprevistos
+  const totalImp = v('imp_monto');
+  document.getElementById('totalImprevistos').textContent = fmt(totalImp);
+
+  // Resumen
+  const totalCostos = montoForm + montoCoord + montoFacilitador + totalDocentes + totalMat + totalGI + totalProm + totalImp;
+  const ingresoNeto = totalRecaudado - totalCostos;
+  const pct = totalRecaudado > 0 ? Math.max(0, Math.min(100, (ingresoNeto / totalRecaudado) * 100)) : 0;
+
+  document.getElementById('res_ingresos').textContent   = fmt(totalRecaudado);
+  document.getElementById('res_docentes').textContent   = '– ' + fmt(totalDocentes);
+  document.getElementById('res_materiales').textContent = '– ' + fmt(totalMat);
+  document.getElementById('res_indirectos').textContent = '– ' + fmt(totalGI);
+  document.getElementById('res_promocion').textContent  = '– ' + fmt(totalProm);
+  document.getElementById('res_imprevistos').textContent= '– ' + fmt(totalImp);
+  document.getElementById('res_costos').textContent     = '– ' + fmt(totalCostos);
+  document.getElementById('res_neto').textContent       = fmt(ingresoNeto);
+  document.getElementById('res_final').textContent      = fmt(ingresoNeto);
+
+  const barraEl = document.getElementById('barra');
+  barraEl.style.width      = pct + '%';
+  barraEl.style.background = pct < 20 ? '#ef4444' : pct < 40 ? '#f97316' : '#F5A800';
+  document.getElementById('barra-pct').textContent = pct.toFixed(1) + '% del ingreso queda para UNIREMHOS';
+}
+
+function exportarExcel() {
+  const tipo          = document.getElementById('tipo').value;
+  const nombre        = document.getElementById('nombre').value || 'Programa';
+  const costoPart     = v('costoPart');
+  const participantes = v('participantes');
+  const precioHora    = v('precioHora');
+  const mensualidad   = v('mensualidad');
+  const pctForm       = tipo === 'diplomado' ? 5 : 10;
+  let   totalRec      = costoPart * participantes;
+  if (tipo === 'diplomado') totalRec += mensualidad * participantes;
+  const formador  = totalRec * (pctForm / 100);
+  const conCoord  = document.getElementById('toggleCoord').checked;
+  const aulaVal   = parseFloat(document.getElementById('mat_aula').value) || 0;
+  const aulaLabel = document.getElementById('mat_aula').options[document.getElementById('mat_aula').selectedIndex].text;
+  const totalMat  = v('mat_libretas')+v('mat_lapiceros')+v('mat_certificados')+v('mat_impresion')+aulaVal+v('mat_otros');
+  const totalGI   = v('gi_luz')+v('gi_refri')+v('gi_invitados');
+  const totalProm = totalRec*(v('prom_redes_pct')/100) + totalRec*(v('prom_descuento_pct')/100) + v('prom_prensa') + v('prom_otros');
+  const totalImp  = v('imp_monto');
+  const conHosp   = document.getElementById('toggleHospital').checked;
+  const montoHosp = conHosp ? v('hospitalTarifa')*v('hospitalHoras') : 0;
+  let   totalMods = 0;
+  modulos.forEach(m => { totalMods += ((m.hTeo||0)+(m.hPrac||0))*precioHora; });
+  const totalDoc  = totalMods + montoHosp;
+  const montoCoord2 = conCoord ? (parseFloat(document.getElementById('montoCoordInput')?.value)||0) : 0;
+  const conFacil2   = document.getElementById('toggleFacilitador').checked;
+  const facMonto2   = conFacil2 ? (parseFloat(document.getElementById('facilitadorMonto')?.value)||0) : 0;
+  const facGrupos2  = conFacil2 ? (parseFloat(document.getElementById('facilitadorGrupos')?.value)||1) : 0;
+  const montoFacil2 = facMonto2 * facGrupos2;
+  const diplomasT2  = v('mat_diplomas_precio') * participantes;
+  const _aulaTipo2  = document.getElementById('mat_aula_tipo')?.value || '0';
+  const aulaT2      = _aulaTipo2 !== '0' ? v('mat_aula_hora') * (modulos.reduce((a,m)=>a+(m.hTeo||0)+(m.hPrac||0),0)) : 0;
+  const totalMat2   = v('mat_libretas')+v('mat_lapiceros')+diplomasT2+v('mat_impresion')+v('mat_clinicos')+v('mat_equipos')+aulaT2+v('mat_otros');
+  const _gi_admin2  = totalRec*(v('gi_admin_pct')/100);
+  const _gi_banco2  = totalRec*(v('gi_banco_pct')/100);
+  const _gi_limp2   = v('gi_limpieza')*(v('gi_encuentros')||1);
+  const _gi_refri2  = document.getElementById('toggleRefri').checked ? v('gi_refri') : 0;
+  const _hVirtual2  = modulos.reduce((a,m)=>a+(m.hVirtual||0),0);
+  const _plataforma2= (parseFloat(document.getElementById('gi_plataforma_tarifa')?.value)||0)*_hVirtual2;
+  const totalGI2    = _gi_admin2+_gi_banco2+_gi_limp2+_gi_refri2+_plataforma2+v('gi_internet')+v('gi_invitados')+v('gi_otros');
+  const totalCostos = formador+montoCoord2+montoFacil2+totalDoc+totalMat2+totalGI2+totalProm+totalImp;
+  const neto = totalRec - totalCostos;
+
+  const S = n => Math.round(n).toLocaleString('es-DO');
+  const H = (k,v,bg='') => `<tr><td style="font-family:Arial;font-size:11px;padding:4px 8px;border:1px solid #ddd;background:${bg||'#fff'}">${k}</td><td style="font-family:Arial;font-size:11px;padding:4px 8px;border:1px solid #ddd;text-align:right;font-weight:600;">RD$ ${S(v)}</td></tr>`;
+
+  let rows = `
+    <tr><td colspan="2" style="background:#1a1a18;color:#fff;font-family:Arial;font-size:13px;font-weight:bold;padding:8px 12px;">PRESUPUESTO EDUCACIÓN CONTINUA — UNIREMHOS</td></tr>
+    <tr><td colspan="2" style="background:#F5A800;font-family:Arial;font-size:11px;font-weight:600;padding:4px 12px;">${nombre} · ${tipo.charAt(0).toUpperCase()+tipo.slice(1)} · ${participantes} participantes</td></tr>
+    <tr><td colspan="2" style="padding:4px;"></td></tr>
+    ${H('Total recaudado', totalRec, '#F5F4F0')}
+    ${H(`Formador de grupos (${pctForm}%)`, formador, '#F0FDF4')}
+    ${conCoord ? H('Coordinador especial (fijo)', 5000, '#EFF6FF') : ''}
+    ${H('Total honorarios docentes', totalDoc)}`;
+
+  modulos.forEach(m => {
+    const hrs = (m.hTeo||0)+(m.hPrac||0);
+    if (hrs > 0) rows += `<tr><td style="font-family:Arial;font-size:10px;padding:3px 8px 3px 24px;border:1px solid #ddd;color:#666;">↳ ${m.nombre} (${hrs} hrs × RD$${S(precioHora)})</td><td style="font-family:Arial;font-size:10px;padding:3px 8px;border:1px solid #ddd;text-align:right;color:#666;">RD$ ${S(hrs*precioHora)}</td></tr>`;
+  });
+  if (conHosp && montoHosp > 0) rows += `<tr><td style="font-family:Arial;font-size:10px;padding:3px 8px 3px 24px;border:1px solid #ddd;color:#1E40AF;">↳ Docente externo/hospital</td><td style="font-family:Arial;font-size:10px;padding:3px 8px;border:1px solid #ddd;text-align:right;color:#1E40AF;">RD$ ${S(montoHosp)}</td></tr>`;
+
+  rows += `
+    ${H('Materiales y logística', totalMat)}
+    ${v('mat_libretas')>0?`<tr><td style="font-family:Arial;font-size:10px;padding:3px 8px 3px 24px;border:1px solid #ddd;color:#666;">↳ Libretas</td><td style="font-family:Arial;font-size:10px;padding:3px 8px;border:1px solid #ddd;text-align:right;color:#666;">RD$ ${S(v('mat_libretas'))}</td></tr>`:''}
+    ${aulaVal>0?`<tr><td style="font-family:Arial;font-size:10px;padding:3px 8px 3px 24px;border:1px solid #ddd;color:#666;">↳ ${aulaLabel}</td><td style="font-family:Arial;font-size:10px;padding:3px 8px;border:1px solid #ddd;text-align:right;color:#666;">RD$ ${S(aulaVal)}</td></tr>`:''}
+    ${H('Gastos indirectos', totalGI)}
+    ${v('gi_refri')>0?`<tr><td style="font-family:Arial;font-size:10px;padding:3px 8px 3px 24px;border:1px solid #ddd;color:#666;">↳ Refrigerios/Café</td><td style="font-family:Arial;font-size:10px;padding:3px 8px;border:1px solid #ddd;text-align:right;color:#666;">RD$ ${S(v('gi_refri'))}</td></tr>`:''}
+    ${v('gi_invitados')>0?`<tr><td style="font-family:Arial;font-size:10px;padding:3px 8px 3px 24px;border:1px solid #ddd;color:#666;">↳ Dieta/Honorarios invitados</td><td style="font-family:Arial;font-size:10px;padding:3px 8px;border:1px solid #ddd;text-align:right;color:#666;">RD$ ${S(v('gi_invitados'))}</td></tr>`:''}
+    ${H('Promoción y publicidad', totalProm)}
+    ${H('Imprevistos', totalImp)}
+    <tr><td colspan="2" style="padding:4px;"></td></tr>
+    <tr><td style="font-family:Arial;font-size:11px;font-weight:700;padding:6px 8px;border:1px solid #ddd;background:#FEF2F2;color:#991B1B;">TOTAL COSTOS</td><td style="font-family:Arial;font-size:11px;font-weight:700;padding:6px 8px;border:1px solid #ddd;text-align:right;background:#FEF2F2;color:#991B1B;">RD$ ${S(totalCostos)}</td></tr>
+    <tr><td style="font-family:Arial;font-size:13px;font-weight:700;padding:8px;border:1px solid #ddd;background:#F0FDF4;color:#065F46;">💛 INGRESO FINAL UNIREMHOS</td><td style="font-family:Arial;font-size:14px;font-weight:700;padding:8px;border:1px solid #ddd;text-align:right;background:#F0FDF4;color:#065F46;">RD$ ${S(neto)}</td></tr>`;
+
+  const html = `<table border="0" cellspacing="0" style="border-collapse:collapse;min-width:480px;">${rows}</table>`;
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `Presupuesto_${nombre.replace(/\s+/g,'_')}.xls`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// Init
+renderModulos();
+onTipoChange();
+</script>
+</body>
+</html>
